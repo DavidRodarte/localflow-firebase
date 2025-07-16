@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState, useEffect } from "react";
+import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,7 +16,6 @@ import { Label } from "@/components/ui/label";
 import { onSignIn, onSignUp } from "@/app/auth/actions";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 const initialState = {
@@ -45,8 +45,8 @@ function SubmitButton({
 
 export default function AuthForm() {
   const { toast } = useToast();
-  const [signInState, signInAction] = useFormState(onSignIn, initialState);
-  const [signUpState, signUpAction] = useFormState(onSignUp, initialState);
+  const [signInState, signInAction] = useActionState(onSignIn, initialState);
+  const [signUpState, signUpAction] = useActionState(onSignUp, initialState);
 
   useEffect(() => {
     if (signInState.message) {
