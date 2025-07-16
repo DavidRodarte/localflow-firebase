@@ -10,7 +10,6 @@ const serviceAccount = {
 const app = !getApps().length
   ? initializeApp({
       credential: cert(serviceAccount),
-      databaseURL: `https://${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.firebaseio.com`,
     })
   : getApp();
 
