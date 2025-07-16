@@ -104,7 +104,7 @@ export default function AuthForm() {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-          <div className="grid gap-2">
+          <div className="grid gap-2" suppressHydrationWarning>
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
@@ -114,7 +114,7 @@ export default function AuthForm() {
               required
             />
           </div>
-          <div className="grid gap-2">
+          <div className="grid gap-2" suppressHydrationWarning>
             <Label htmlFor="password">Password</Label>
             <Input id="password" type="password" name="password" required />
           </div>
