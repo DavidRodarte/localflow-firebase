@@ -26,22 +26,23 @@ export async function createPost(input: CreatePostInput, idToken: string) {
   }
 
   const authorId = user.uid;
+  const newPost: Omit<Listing, "id"> = {
+    ...input,
+    authorId: authorId,
+    // Hardcoding placeholder image for now
+    imageUrl: "https://placehold.co/600x400.png",
+    imageHint: "new listing"
+  };
 
   try {
-    const newPost: Omit<Listing, "id"> = {
-      ...input,
-      authorId: authorId,
-      // Hardcoding placeholder image for now
-      imageUrl: "https://placehold.co/600x400.png",
-      imageHint: "new listing"
-    };
-
     await db.collection("listings").add(newPost);
   } catch (error) {
     console.error("Error creating post:", error);
-    throw new Error("Failed to create post.");
+    // Re-throw the error to be caught by the client
+    throw new Error("Failed to create post in database.");
   }
   
+  // Redirect after the database operation is successful
   redirect("/");
 }
 
