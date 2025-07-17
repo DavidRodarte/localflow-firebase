@@ -109,6 +109,26 @@ export default function AuthForm() {
       });
     }
   };
+  
+  const AuthContent = () => (
+    <>
+      <div className="grid gap-2" suppressHydrationWarning>
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          name="email"
+          placeholder="m@example.com"
+          required
+        />
+      </div>
+      <div className="grid gap-2" suppressHydrationWarning>
+        <Label htmlFor="password">Password</Label>
+        <Input id="password" type="password" name="password" required />
+      </div>
+    </>
+  );
+
 
   return (
     <Card>
@@ -153,23 +173,17 @@ export default function AuthForm() {
           </div>
         </div>
         
-        <form action={isSigningUp ? signUpAction : signInAction} className="space-y-4">
-          <div className="grid gap-2" suppressHydrationWarning>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              name="email"
-              placeholder="m@example.com"
-              required
-            />
-          </div>
-          <div className="grid gap-2" suppressHydrationWarning>
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" name="password" required />
-          </div>
-          <SubmitButton text={isSigningUp ? "Create Account" : "Sign In"} />
-        </form>
+        {isSigningUp ? (
+          <form action={signUpAction} className="space-y-4">
+            <AuthContent />
+            <SubmitButton text="Create Account" />
+          </form>
+        ) : (
+          <form action={signInAction} className="space-y-4">
+            <AuthContent />
+            <SubmitButton text="Sign In" />
+          </form>
+        )}
       </CardContent>
       <CardFooter className="flex flex-col gap-2">
          <Separator className="my-2"/>
