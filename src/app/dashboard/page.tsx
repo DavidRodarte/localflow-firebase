@@ -180,12 +180,6 @@ export default function DashboardPage() {
       <main className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-headline font-bold">My Listings</h1>
-           <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90">
-            <Link href="/create-post">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Create New Listing
-            </Link>
-          </Button>
         </div>
 
         {listings.length > 0 ? (
