@@ -3,11 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
-  getAuth,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from "firebase/auth";
-import { FirebaseError } from "@firebase/util";
+import { FirebaseError } from "firebase/app";
 import {
   AuthForm,
   AuthFormSchema,
@@ -48,12 +47,12 @@ export async function onSignUp(
   const form = Object.fromEntries(formData.entries()) as AuthForm;
   const result = AuthFormSchema.safeParse(form);
 
-  /*if (!result.success) {
+  if (!result.success) {
     console.log(result)
     return {
       message: "Invalid credentials.",
     };
-  }*/
+  }
   try {
     const { email, password } = result.data;
     await createUserWithEmailAndPassword(auth, email, password);

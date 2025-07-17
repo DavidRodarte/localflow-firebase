@@ -18,7 +18,8 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "../ui/separator";
-import { signInWithPopup, GoogleAuthProvider, FirebaseError } from "firebase/auth";
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { FirebaseError } from "firebase/app";
 import { auth } from "@/lib/firebase/client";
 
 const initialState = {
