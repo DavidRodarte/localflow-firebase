@@ -34,6 +34,7 @@ import { useAuth } from '@/context/auth-context';
 import type { Listing } from '@/types';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import Image from 'next/image';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '../ui/carousel';
 
 const formSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.').max(100),
@@ -165,19 +166,29 @@ export default function UpdatePostForm({ listing }: UpdatePostFormProps) {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
              <FormItem>
-                <FormLabel>Image</FormLabel>
-                <div className="aspect-video w-full overflow-hidden rounded-lg border">
-                 <Image
-                    src={listing.imageUrl}
-                    alt={listing.title}
-                    width={1200}
-                    height={800}
-                    className="object-cover w-full h-full"
-                    data-ai-hint={listing.imageHint}
-                  />
-                </div>
+                <FormLabel>Images</FormLabel>
+                <Carousel className="w-full">
+                  <CarouselContent>
+                    {listing.imageUrls.map((url, index) => (
+                      <CarouselItem key={index}>
+                        <div className="aspect-video w-full overflow-hidden rounded-lg border">
+                          <Image
+                            src={url}
+                            alt={`${listing.title} - image ${index + 1}`}
+                            width={1200}
+                            height={800}
+                            className="object-cover w-full h-full"
+                            data-ai-hint={listing.imageHint}
+                          />
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious />
+                  <CarouselNext />
+                </Carousel>
                  <FormDescription>
-                    The image cannot be changed after a post has been created.
+                    Images cannot be changed after a post has been created.
                  </FormDescription>
             </FormItem>
             <FormField

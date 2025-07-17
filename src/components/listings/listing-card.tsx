@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { Carousel, CarouselContent, CarouselItem } from "../ui/carousel";
 
 interface ListingCardProps {
   listing: Listing;
@@ -13,16 +14,38 @@ export default function ListingCard({ listing }: ListingCardProps) {
     <Link href={`/listings/${listing.id}`} className="group">
       <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
         <CardHeader className="p-0">
-          <div className="aspect-video overflow-hidden">
-            <Image
-              src={listing.imageUrl}
-              alt={listing.title}
-              width={600}
-              height={400}
-              className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-              data-ai-hint={listing.imageHint}
-            />
-          </div>
+          <Carousel className="w-full">
+            <CarouselContent>
+               {listing.imageUrls && listing.imageUrls.length > 0 ? (
+                listing.imageUrls.map((url, index) => (
+                  <CarouselItem key={index}>
+                    <div className="aspect-video overflow-hidden">
+                      <Image
+                        src={url}
+                        alt={listing.title}
+                        width={600}
+                        height={400}
+                        className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                        data-ai-hint={listing.imageHint}
+                      />
+                    </div>
+                  </CarouselItem>
+                ))
+              ) : (
+                 <CarouselItem>
+                    <div className="aspect-video overflow-hidden bg-secondary">
+                       <Image
+                        src="https://placehold.co/600x400"
+                        alt="Placeholder image"
+                        width={600}
+                        height={400}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  </CarouselItem>
+              )}
+            </CarouselContent>
+          </Carousel>
         </CardHeader>
         <CardContent className="p-4 flex-grow">
           <CardTitle className="text-lg font-headline leading-tight mb-2 truncate">{listing.title}</CardTitle>

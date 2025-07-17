@@ -45,7 +45,7 @@ export async function getListing(
   return listing;
 }
 
-type UpdatePostInput = Omit<Listing, 'id' | 'authorId' | 'imageUrl' | 'imageHint'>;
+type UpdatePostInput = Omit<Listing, 'id' | 'authorId' | 'imageUrls' | 'imageHint'>;
 
 export async function updateListing(
   listingId: string,

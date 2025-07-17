@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, MapPin, Phone, User as UserIcon } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 export default async function ListingDetailPage({
   params,
@@ -19,7 +20,7 @@ export default async function ListingDetailPage({
     notFound();
   }
 
-  const { title, description, price, category, location, tags, imageUrl, imageHint, author } =
+  const { title, description, price, category, location, tags, imageUrls, imageHint, author } =
     listingDetails;
 
   return (
@@ -28,16 +29,26 @@ export default async function ListingDetailPage({
       <main className="container mx-auto px-4 py-8">
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
-            <div className="aspect-video w-full overflow-hidden rounded-lg border">
-              <Image
-                src={imageUrl}
-                alt={title}
-                width={1200}
-                height={800}
-                className="object-cover w-full h-full"
-                data-ai-hint={imageHint}
-              />
-            </div>
+            <Carousel className="w-full">
+              <CarouselContent>
+                {imageUrls.map((url, index) => (
+                  <CarouselItem key={index}>
+                    <div className="aspect-video w-full overflow-hidden rounded-lg border">
+                      <Image
+                        src={url}
+                        alt={`${title} - image ${index + 1}`}
+                        width={1200}
+                        height={800}
+                        className="object-cover w-full h-full"
+                        data-ai-hint={imageHint}
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
           </div>
           <div className="md:col-span-1 space-y-6">
             <Card>

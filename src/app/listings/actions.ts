@@ -25,7 +25,7 @@ export async function getListings(): Promise<Listing[]> {
         category: data.category,
         location: data.location,
         tags: data.tags,
-        imageUrl: data.imageUrl,
+        imageUrls: data.imageUrls,
         imageHint: data.imageHint,
         authorId: data.authorId,
       };

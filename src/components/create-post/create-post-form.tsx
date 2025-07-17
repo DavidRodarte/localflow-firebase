@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useAuth } from "@/context/auth-context";
 import Image from 'next/image';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../ui/carousel";
 
 const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -28,7 +29,7 @@ const formSchema = z.object({
   price: z.coerce.number().min(0, "Price can't be negative.").optional(),
   location: z.string().min(2, "Location is required."),
   tags: z.array(z.string()).max(10, "You can add up to 10 tags."),
-  imageUrl: z.string().refine((val) => val.length > 0, { message: "Please upload an image." }),
+  imageUrls: z.array(z.string()).min(1, "Please upload at least one image.").max(5, "You can upload up to 5 images."),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -44,7 +45,7 @@ export default function CreatePostForm({ userLocation }: CreatePostFormProps) {
   const [suggestedTags, setSuggestedTags] = React.useState<string[]>([]);
   const [isSuggesting, setIsSuggesting] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [imagePreview, setImagePreview] = React.useState<string | null>(null);
+  const [imagePreviews, setImagePreviews] = React.useState<string[]>([]);
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -55,37 +56,55 @@ export default function CreatePostForm({ userLocation }: CreatePostFormProps) {
       location: userLocation || "",
       tags: [],
       price: 0,
-      imageUrl: "",
+      imageUrls: [],
     },
   });
 
   React.useEffect(() => {
     form.setValue("tags", tags);
   }, [tags, form]);
-  
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > MAX_FILE_SIZE) {
-        form.setError("imageUrl", { message: "Image is too large. Max size is 4MB." });
-        return;
-      }
-       if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-        form.setError("imageUrl", { message: "Invalid image format. Please use JPG, PNG, or WEBP." });
-        return;
-      }
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const dataUrl = reader.result as string;
-        setImagePreview(dataUrl);
-        form.setValue("imageUrl", dataUrl);
-        form.clearErrors("imageUrl");
-      };
-      reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length + imagePreviews.length > 5) {
+      form.setError("imageUrls", { message: "You can only upload up to 5 images in total." });
+      return;
     }
+    
+    const fileReadPromises = files.map(file => {
+      if (file.size > MAX_FILE_SIZE) {
+        form.setError("imageUrls", { message: `Image ${file.name} is too large. Max size is 4MB.` });
+        return Promise.reject();
+      }
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        form.setError("imageUrls", { message: `Invalid format for ${file.name}. Please use JPG, PNG, or WEBP.` });
+        return Promise.reject();
+      }
+      return new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          resolve(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(fileReadPromises).then(newPreviews => {
+        const allPreviews = [...imagePreviews, ...newPreviews];
+        setImagePreviews(allPreviews);
+        form.setValue("imageUrls", allPreviews);
+        form.clearErrors("imageUrls");
+    }).catch(() => {
+        // Error is set inside the map
+    });
   };
 
+  const removeImage = (index: number) => {
+    const newPreviews = [...imagePreviews];
+    newPreviews.splice(index, 1);
+    setImagePreviews(newPreviews);
+    form.setValue("imageUrls", newPreviews);
+  }
 
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim() !== "") {
@@ -172,25 +191,6 @@ export default function CreatePostForm({ userLocation }: CreatePostFormProps) {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-             <FormField
-              control={form.control}
-              name="imageUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Image</FormLabel>
-                   <FormControl>
-                    <Input type="file" accept="image/*" onChange={handleImageChange} className="file:text-primary file:font-medium" />
-                  </FormControl>
-                  {imagePreview && (
-                    <div className="mt-4 relative w-full aspect-video rounded-lg overflow-hidden border">
-                       <Image src={imagePreview} alt="Image preview" fill className="object-cover" />
-                    </div>
-                  )}
-                  <FormDescription>Upload a high-quality photo of your item (max 4MB).</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="title"
@@ -314,6 +314,39 @@ export default function CreatePostForm({ userLocation }: CreatePostFormProps) {
               )}
               <FormMessage />
             </FormItem>
+
+             <FormField
+              control={form.control}
+              name="imageUrls"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Images</FormLabel>
+                   <FormControl>
+                    <Input type="file" accept="image/*" multiple onChange={handleImageChange} className="file:text-primary file:font-medium" disabled={imagePreviews.length >= 5}/>
+                  </FormControl>
+                  {imagePreviews.length > 0 && (
+                    <Carousel className="mt-4 w-full">
+                      <CarouselContent>
+                        {imagePreviews.map((preview, index) => (
+                           <CarouselItem key={index} className="relative basis-1/2">
+                              <div className="aspect-video rounded-lg overflow-hidden border">
+                                 <Image src={preview} alt={`Image preview ${index+1}`} fill className="object-cover" />
+                              </div>
+                              <Button type="button" size="icon" variant="destructive" className="absolute top-2 right-2 h-6 w-6" onClick={() => removeImage(index)}>
+                                <X className="h-4 w-4" />
+                              </Button>
+                           </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                      <CarouselPrevious />
+                      <CarouselNext />
+                    </Carousel>
+                  )}
+                  <FormDescription>Upload up to 5 photos of your item (max 4MB each).</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
             <Button type="submit" size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={isSubmitting}>
               {isSubmitting ? (
