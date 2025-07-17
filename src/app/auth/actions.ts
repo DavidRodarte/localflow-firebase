@@ -3,7 +3,6 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { FirebaseError } from "firebase-admin/app";
 import {
   AuthForm,
   AuthFormSchema,
@@ -42,6 +41,10 @@ export async function onSignUp(
     redirect("/auth?message=signup-success");
 
   } catch (e: any) {
+    if (typeof e === 'object' && e !== null && 'message' in e && typeof e.message === 'string' && e.message.includes('NEXT_REDIRECT')) {
+      throw e;
+    }
+    
     if (e.code === "auth/email-already-exists") {
       return {
         message: "The email address is already in use by another account.",
