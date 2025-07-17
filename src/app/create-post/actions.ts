@@ -2,12 +2,12 @@
 "use server";
 
 import { suggestTags, type SuggestTagsInput } from "@/ai/flows/suggest-tags";
-import { generateImage } from "@/ai/flows/generate-image-flow";
 import { db, auth } from "@/lib/firebase/server";
 import { type Listing } from "@/types";
 import { redirect } from "next/navigation";
 
-type CreatePostInput = Omit<Listing, "id" | "authorId" | "imageUrl" | "imageHint">;
+// The input now includes the imageUrl as a Base64 string
+type CreatePostInput = Omit<Listing, "id" | "authorId" | "imageHint">;
 
 export async function createPost(input: CreatePostInput, idToken: string) {
   if (!db || !auth) {
@@ -28,15 +28,11 @@ export async function createPost(input: CreatePostInput, idToken: string) {
   }
 
   const authorId = user.uid;
-  
-  // Generate image from title
-  const { imageUrl } = await generateImage({ title: input.title });
 
   const newPost: Omit<Listing, "id"> = {
     ...input,
     authorId: authorId,
-    imageUrl: imageUrl,
-    imageHint: input.title // Use title as the hint for future AI operations
+    imageHint: input.title // Use title as the hint for accessibility and potential future AI
   };
 
   try {
@@ -49,7 +45,6 @@ export async function createPost(input: CreatePostInput, idToken: string) {
     throw new Error("Failed to create post in the database. Please try again.");
   }
   
-  // Redirect only after all database operations are successful
   redirect("/");
 }
 

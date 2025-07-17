@@ -16,8 +16,10 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useAuth } from "@/context/auth-context";
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import Image from 'next/image';
 
+const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters.").max(100),
@@ -26,6 +28,7 @@ const formSchema = z.object({
   price: z.coerce.number().min(0, "Price can't be negative.").optional(),
   location: z.string().min(2, "Location is required."),
   tags: z.array(z.string()).max(10, "You can add up to 10 tags."),
+  imageUrl: z.string().refine((val) => val.length > 0, { message: "Please upload an image." }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -41,6 +44,7 @@ export default function CreatePostForm({ userLocation }: CreatePostFormProps) {
   const [suggestedTags, setSuggestedTags] = React.useState<string[]>([]);
   const [isSuggesting, setIsSuggesting] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [imagePreview, setImagePreview] = React.useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -51,12 +55,37 @@ export default function CreatePostForm({ userLocation }: CreatePostFormProps) {
       location: userLocation || "",
       tags: [],
       price: 0,
+      imageUrl: "",
     },
   });
 
   React.useEffect(() => {
     form.setValue("tags", tags);
   }, [tags, form]);
+  
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        form.setError("imageUrl", { message: "Image is too large. Max size is 4MB." });
+        return;
+      }
+       if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        form.setError("imageUrl", { message: "Invalid image format. Please use JPG, PNG, or WEBP." });
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        setImagePreview(dataUrl);
+        form.setValue("imageUrl", dataUrl);
+        form.clearErrors("imageUrl");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
 
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim() !== "") {
@@ -122,6 +151,10 @@ export default function CreatePostForm({ userLocation }: CreatePostFormProps) {
       await createPost(values, idToken);
       // On success, the server action will redirect.
     } catch (error: any) {
+      if (error.message.includes('NEXT_REDIRECT')) {
+        // This is expected on success, so we re-throw it to let Next.js handle it.
+        throw error;
+      }
        toast({
           variant: 'destructive',
           title: 'Submission Failed',
@@ -139,6 +172,25 @@ export default function CreatePostForm({ userLocation }: CreatePostFormProps) {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+             <FormField
+              control={form.control}
+              name="imageUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image</FormLabel>
+                   <FormControl>
+                    <Input type="file" accept="image/*" onChange={handleImageChange} className="file:text-primary file:font-medium" />
+                  </FormControl>
+                  {imagePreview && (
+                    <div className="mt-4 relative w-full aspect-video rounded-lg overflow-hidden border">
+                       <Image src={imagePreview} alt="Image preview" fill className="object-cover" />
+                    </div>
+                  )}
+                  <FormDescription>Upload a high-quality photo of your item (max 4MB).</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="title"
@@ -262,23 +314,12 @@ export default function CreatePostForm({ userLocation }: CreatePostFormProps) {
               )}
               <FormMessage />
             </FormItem>
-
-            <FormItem>
-              <FormLabel>Image</FormLabel>
-              <Alert>
-                <ImageIcon className="h-4 w-4" />
-                <AlertTitle>AI-Generated Image</AlertTitle>
-                <AlertDescription>
-                  An image will be automatically generated for your listing based on its title. You can't upload your own image at this time.
-                </AlertDescription>
-              </Alert>
-            </FormItem>
             
             <Button type="submit" size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating & Posting...
+                  Posting...
                 </>
               ) : "Create Post"}
             </Button>
