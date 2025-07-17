@@ -68,6 +68,12 @@ export default function Header() {
                     {user.email}
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                   <DropdownMenuItem asChild>
+                     <Link href="/profile">
+                        <UserIcon className="mr-2 h-4 w-4" />
+                        <span>My Profile</span>
+                      </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                      <Link href="/dashboard">
                         <LayoutDashboard className="mr-2 h-4 w-4" />

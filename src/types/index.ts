@@ -13,3 +13,11 @@ export interface Listing {
   imageHint: string;
   authorId: string;
 }
+
+export interface UserProfile {
+  id: string; // This will be the user's UID
+  email: string;
+  name?: string;
+  location?: string;
+  phoneNumber?: string;
+}
