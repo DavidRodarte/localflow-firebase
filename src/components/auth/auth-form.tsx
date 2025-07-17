@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,14 +14,14 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { onSignIn, onSignUp } from "@/app/auth/actions";
+import { onSignUp } from "@/app/auth/actions";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "../ui/separator";
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { FirebaseError } from "firebase/app";
+import { signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, type AuthError } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
+import { useSearchParams } from "next/navigation";
 
 const initialState = {
   message: "",
@@ -56,12 +56,19 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-function SubmitButton({text}: {text: string}) {
+function SignUpButton() {
   const { pending } = useFormStatus();
-
   return (
     <Button type="submit" className="w-full" disabled={pending}>
-      {pending ? <Loader2 className="animate-spin" /> : text}
+      {pending ? <Loader2 className="animate-spin" /> : "Create Account"}
+    </Button>
+  );
+}
+
+function SignInButton({ isPending }: { isPending: boolean }) {
+  return (
+    <Button type="submit" className="w-full" disabled={isPending}>
+      {isPending ? <Loader2 className="animate-spin" /> : "Sign In"}
     </Button>
   );
 }
@@ -89,22 +96,13 @@ function AuthContent() {
 
 export default function AuthForm() {
   const { toast } = useToast();
-  const [signInState, signInAction] = useActionState(onSignIn, initialState);
+  const searchParams = useSearchParams();
   const [signUpState, signUpAction] = useActionState(onSignUp, initialState);
   const [isSigningUp, setIsSigningUp] = useState(false);
+  const [isSigningIn, startSignInTransition] = useTransition();
 
   useEffect(() => {
-    if (signInState.message) {
-      toast({
-        variant: "destructive",
-        title: "Sign In Failed",
-        description: signInState.message,
-      });
-    }
-  }, [signInState, toast]);
-
-  useEffect(() => {
-    if (signUpState.message) {
+    if (signUpState?.message) {
       toast({
         variant: "destructive",
         title: "Sign Up Failed",
@@ -113,16 +111,27 @@ export default function AuthForm() {
     }
   }, [signUpState, toast]);
 
+  useEffect(() => {
+    const message = searchParams.get('message');
+    if (message === 'signup-success') {
+      toast({
+        title: "Account Created!",
+        description: "You can now sign in with your new credentials.",
+      });
+      setIsSigningUp(false);
+    }
+  }, [searchParams, toast]);
+
   const onSignInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
+      if (!auth) throw new Error("Firebase client not initialized");
       await signInWithPopup(auth, provider);
     } catch (error) {
-      if (error instanceof FirebaseError && error.code === 'auth/popup-closed-by-user') {
-        console.log("Google sign-in cancelled by user.");
+      const authError = error as AuthError;
+      if (authError.code === 'auth/popup-closed-by-user') {
         return;
       }
-      console.error("Google sign in error", error);
       toast({
         variant: "destructive",
         title: "Google Sign In Failed",
@@ -130,7 +139,32 @@ export default function AuthForm() {
       });
     }
   };
-  
+
+  const handleSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    startSignInTransition(async () => {
+      try {
+        if (!auth) throw new Error("Firebase client not initialized");
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (error) {
+        const authError = error as AuthError;
+        let message = "An unexpected error occurred.";
+        if (authError.code === 'auth/invalid-credential') {
+            message = "Invalid email or password.";
+        }
+        toast({
+            variant: "destructive",
+            title: "Sign In Failed",
+            description: message,
+        });
+      }
+    });
+  };
+
   return (
     <Card>
       <CardHeader className="space-y-1 text-center">
@@ -177,12 +211,12 @@ export default function AuthForm() {
         {isSigningUp ? (
           <form action={signUpAction} className="space-y-4">
             <AuthContent />
-            <SubmitButton text="Create Account" />
+            <SignUpButton />
           </form>
         ) : (
-          <form action={signInAction} className="space-y-4">
+          <form onSubmit={handleSignIn} className="space-y-4">
             <AuthContent />
-            <SubmitButton text="Sign In" />
+            <SignInButton isPending={isSigningIn} />
           </form>
         )}
       </CardContent>
