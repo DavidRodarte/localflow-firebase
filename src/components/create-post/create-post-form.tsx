@@ -5,7 +5,7 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Lightbulb, Loader2, Tag, X } from "lucide-react";
+import { Lightbulb, Loader2, Tag, X, Image as ImageIcon } from "lucide-react";
 import { getTagSuggestions, createPost } from "@/app/create-post/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -16,6 +16,8 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useAuth } from "@/context/auth-context";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters.").max(100),
@@ -120,14 +122,12 @@ export default function CreatePostForm({ userLocation }: CreatePostFormProps) {
       await createPost(values, idToken);
       // On success, the server action will redirect.
     } catch (error: any) {
-        if (!error.message.includes('NEXT_REDIRECT')) {
-            toast({
-                variant: 'destructive',
-                title: 'Submission Failed',
-                description: 'Could not create your post. Please try again.',
-            });
-            setIsSubmitting(false);
-        }
+       toast({
+          variant: 'destructive',
+          title: 'Submission Failed',
+          description: error.message || 'Could not create your post. Please try again.',
+      });
+      setIsSubmitting(false);
     }
   }
 
@@ -264,23 +264,23 @@ export default function CreatePostForm({ userLocation }: CreatePostFormProps) {
             </FormItem>
 
             <FormItem>
-              <FormLabel>Images</FormLabel>
-              <FormControl>
-                <div className="flex items-center justify-center w-full">
-                  <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-secondary/50 hover:bg-secondary">
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                          <p className="text-xs text-muted-foreground">Up to 5 images</p>
-                      </div>
-                      <input id="dropzone-file" type="file" className="hidden" multiple accept="image/*" disabled />
-                  </label>
-                </div> 
-              </FormControl>
-              <FormDescription>Feature not implemented. Image uploads are for demonstration purposes only.</FormDescription>
+              <FormLabel>Image</FormLabel>
+              <Alert>
+                <ImageIcon className="h-4 w-4" />
+                <AlertTitle>AI-Generated Image</AlertTitle>
+                <AlertDescription>
+                  An image will be automatically generated for your listing based on its title. You can't upload your own image at this time.
+                </AlertDescription>
+              </Alert>
             </FormItem>
             
             <Button type="submit" size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={isSubmitting}>
-              {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Create Post"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generating & Posting...
+                </>
+              ) : "Create Post"}
             </Button>
           </form>
         </Form>

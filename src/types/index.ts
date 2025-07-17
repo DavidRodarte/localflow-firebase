@@ -9,7 +9,7 @@ export interface Listing {
   category: ListingCategory;
   location: string;
   tags: string[];
-  imageUrl: string;
+  imageUrl: string; // Can be a URL or a Base64 data URI
   imageHint: string;
   authorId: string;
 }

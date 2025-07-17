@@ -2,6 +2,7 @@
 "use server";
 
 import { suggestTags, type SuggestTagsInput } from "@/ai/flows/suggest-tags";
+import { generateImage } from "@/ai/flows/generate-image-flow";
 import { db, auth } from "@/lib/firebase/server";
 import { type Listing } from "@/types";
 import { redirect } from "next/navigation";
@@ -27,19 +28,24 @@ export async function createPost(input: CreatePostInput, idToken: string) {
   }
 
   const authorId = user.uid;
+  
+  // Generate image from title
+  const { imageUrl } = await generateImage({ title: input.title });
+
   const newPost: Omit<Listing, "id"> = {
     ...input,
     authorId: authorId,
-    // Hardcoding placeholder image for now
-    imageUrl: "https://placehold.co/600x400.png",
-    imageHint: "new listing"
+    imageUrl: imageUrl,
+    imageHint: input.title // Use title as the hint for future AI operations
   };
 
   try {
     await db.collection("listings").add(newPost);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating post in database:", error);
-    // Throw a real error that the client can catch
+    if (error.message.includes('NEXT_REDIRECT')) {
+      throw error;
+    }
     throw new Error("Failed to create post in the database. Please try again.");
   }
   
