@@ -60,6 +60,7 @@ export default function AuthForm() {
 
   useEffect(() => {
     if (signUpState.message) {
+      console.log(signUpState)
       toast({
         variant: "destructive",
         title: "Sign Up Failed",

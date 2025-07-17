@@ -7,11 +7,12 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from "firebase/auth";
+import { FirebaseError } from "@firebase/util";
 import {
   AuthForm,
   AuthFormSchema,
   AuthFormState,
-} from "@/components/auth/auth-form.types";
+} from '@/components/auth/auth-form.types';
 import { auth } from "@/lib/firebase/server";
 
 export async function onSignIn(
@@ -56,7 +57,23 @@ export async function onSignUp(
     await createUserWithEmailAndPassword(auth, email, password);
     redirect("/");
   } catch (e) {
-    return {
+    if (e instanceof FirebaseError) {
+      switch (e.code) {
+        case "auth/email-already-in-use":
+          return {
+            message: "The email address is already in use.",
+          };
+        case "auth/weak-password":
+          return {
+            message: "The password is too weak.",
+          };
+        default:
+          return {
+            message: "An unexpected error occurred.",
+          };
+      }
+    }
+ return {
       message: "Invalid credentials.",
     };
   }
