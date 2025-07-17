@@ -28,12 +28,13 @@ export async function getUserProfile(
   const userId = await getUserIdFromToken(idToken);
   const userRef = db.collection('users').doc(userId);
   const docSnap = await userRef.get();
+  
+  const userRecord = await auth.getUser(userId);
 
   if (docSnap.exists) {
-    return { id: docSnap.id, ...docSnap.data() } as UserProfile;
+    return { id: docSnap.id, email: userRecord.email || '', ...docSnap.data() } as UserProfile;
   } else {
     // If no profile exists, create a default one from auth data
-    const userRecord = await auth.getUser(userId);
     return {
       id: userId,
       email: userRecord.email || '',
@@ -53,12 +54,22 @@ export async function updateUserProfile(
   try {
     const userId = await getUserIdFromToken(idToken);
     const userRef = db.collection('users').doc(userId);
+    
+    // Get user's email from Firebase Auth to ensure it's correct
+    const userRecord = await auth.getUser(userId);
+    const email = userRecord.email;
+
+    const profileData = {
+        ...input,
+        email: email,
+    };
 
     // Using set with merge:true will create the document if it doesn't exist,
     // and update it if it does, without overwriting unspecified fields.
-    await userRef.set(input, { merge: true });
+    await userRef.set(profileData, { merge: true });
 
     revalidatePath('/profile');
+    revalidatePath(`/listings`); // Revalidate listings to show updated author info
     return { success: true };
   } catch (error) {
     console.error('Error updating user profile:', error);

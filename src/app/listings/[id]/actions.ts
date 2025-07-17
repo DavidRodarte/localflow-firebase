@@ -1,14 +1,14 @@
 
 'use server';
 
-import { db } from '@/lib/firebase/server';
+import { db, auth } from '@/lib/firebase/server';
 import type { Listing, UserProfile } from '@/types';
 
 export async function getListingDetails(
   listingId: string
 ): Promise<(Listing & { author: UserProfile | null }) | null> {
-  if (!db) {
-    console.error('Firestore is not initialized.');
+  if (!db || !auth) {
+    console.error('Firestore or Auth is not initialized.');
     throw new Error('Server is not configured correctly.');
   }
 
@@ -29,6 +29,19 @@ export async function getListingDetails(
 
       if (userSnap.exists) {
         author = { id: userSnap.id, ...userSnap.data() } as UserProfile;
+        // Fallback for older profiles that might not have email stored
+        if (!author.email) {
+            const userRecord = await auth.getUser(listingData.authorId);
+            author.email = userRecord.email || '';
+        }
+      } else {
+        // If no profile doc, create one from auth data
+        const userRecord = await auth.getUser(listingData.authorId);
+         author = {
+            id: userRecord.uid,
+            email: userRecord.email || '',
+            name: userRecord.displayName,
+         }
       }
     }
 
