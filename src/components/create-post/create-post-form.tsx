@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { useAuth } from "@/context/auth-context";
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters.").max(100),
@@ -28,6 +29,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function CreatePostForm() {
+  const { user } = useAuth();
   const [tags, setTags] = React.useState<string[]>([]);
   const [tagInput, setTagInput] = React.useState("");
   const [suggestedTags, setSuggestedTags] = React.useState<string[]>([]);
@@ -98,9 +100,19 @@ export default function CreatePostForm() {
   };
 
   async function onSubmit(values: FormValues) {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: "You must be logged in to create a post.",
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
-      await createPost(values);
+      const idToken = await user.getIdToken();
+      await createPost(values, idToken);
       toast({
         title: "Post Submitted!",
         description: "Your listing has been successfully created.",
