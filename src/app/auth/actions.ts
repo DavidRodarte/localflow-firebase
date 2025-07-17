@@ -3,17 +3,16 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-} from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
 import {
   AuthForm,
   AuthFormSchema,
   AuthFormState,
 } from '@/components/auth/auth-form.types';
-import { auth } from "@/lib/firebase/server";
+import { auth as clientAuth } from "@/lib/firebase/client";
+import { auth as adminAuth } from "@/lib/firebase/server";
+
 
 const FIREBASE_SERVER_CONFIG_ERROR = "Firebase server authentication is not configured. Please check your environment variables.";
 
@@ -21,8 +20,8 @@ export async function onSignIn(
   previousState: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
-  if (!auth) {
-    return { message: FIREBASE_SERVER_CONFIG_ERROR };
+  if (!clientAuth) {
+    return { message: "Firebase client authentication is not configured." };
   }
   
   const form = Object.fromEntries(formData.entries()) as AuthForm;
@@ -36,7 +35,7 @@ export async function onSignIn(
 
   try {
     const { email, password } = result.data;
-    await signInWithEmailAndPassword(auth, email, password);
+    await signInWithEmailAndPassword(clientAuth, email, password);
     revalidatePath("/");
     redirect("/");
   } catch (e) {
@@ -50,7 +49,7 @@ export async function onSignUp(
   previousState: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
-  if (!auth) {
+  if (!adminAuth) {
     return { message: FIREBASE_SERVER_CONFIG_ERROR };
   }
 
@@ -64,12 +63,18 @@ export async function onSignUp(
   }
   try {
     const { email, password } = result.data;
-    await createUserWithEmailAndPassword(auth, email, password);
+    await adminAuth.createUser({ email, password });
+    
+    if (!clientAuth) {
+        return { message: "Firebase client authentication is not configured. User created, but could not sign in." };
+    }
+    await signInWithEmailAndPassword(clientAuth, email, password);
+
     redirect("/");
   } catch (e) {
     if (e instanceof FirebaseError) {
       switch (e.code) {
-        case "auth/email-already-in-use":
+        case "auth/email-already-exists":
           return {
             message: "The email address is already in use.",
           };
