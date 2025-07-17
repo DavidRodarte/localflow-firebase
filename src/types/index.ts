@@ -13,6 +13,7 @@ export interface Listing {
   imageHint: string;
   authorId: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface UserProfile {

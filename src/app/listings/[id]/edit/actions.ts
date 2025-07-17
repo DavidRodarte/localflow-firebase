@@ -45,7 +45,7 @@ export async function getListing(
   return listing;
 }
 
-type UpdatePostInput = Omit<Listing, 'id' | 'authorId' | 'imageUrls' | 'imageHint' | 'createdAt'>;
+type UpdatePostInput = Omit<Listing, 'id' | 'authorId' | 'imageUrls' | 'imageHint' | 'createdAt' | 'updatedAt'>;
 
 export async function updateListing(
   listingId: string,
@@ -71,8 +71,13 @@ export async function updateListing(
     if (listingData.authorId !== userId) {
       throw new Error('You are not authorized to update this listing.');
     }
+    
+    const updateData = {
+        ...input,
+        updatedAt: new Date().toISOString()
+    };
 
-    await docRef.update(input);
+    await docRef.update(updateData);
   } catch (error: any) {
     console.error('Error updating post in database:', error);
     if (error.message.includes('NEXT_REDIRECT')) {
@@ -82,6 +87,7 @@ export async function updateListing(
   }
 
   revalidatePath('/dashboard');
+  revalidatePath(`/listings/${listingId}`);
   revalidatePath(`/listings/${listingId}/edit`);
   redirect('/dashboard');
 }

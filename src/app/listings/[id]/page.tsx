@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, MapPin, Phone, User as UserIcon, CalendarIcon } from 'lucide-react';
+import { Mail, MapPin, Phone, User as UserIcon, CalendarIcon, Edit } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { format } from 'date-fns';
@@ -21,10 +21,11 @@ export default async function ListingDetailPage({
     notFound();
   }
 
-  const { title, description, price, category, location, tags, imageUrls, imageHint, author, createdAt } =
+  const { title, description, price, category, location, tags, imageUrls, imageHint, author, createdAt, updatedAt } =
     listingDetails;
 
   const formattedDate = createdAt ? format(new Date(createdAt), "MMM d, yyyy 'at' h:mm a") : 'Date not available';
+  const formattedUpdateDate = updatedAt ? format(new Date(updatedAt), "MMM d, yyyy 'at' h:mm a") : null;
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -75,6 +76,12 @@ export default async function ListingDetailPage({
                         <CalendarIcon className="h-4 w-4 mr-1.5" />
                         Posted on {formattedDate}
                     </div>
+                    {formattedUpdateDate && (
+                       <div className="flex items-center">
+                        <Edit className="h-4 w-4 mr-1.5" />
+                        Updated on {formattedUpdateDate}
+                    </div>
+                    )}
                 </div>
                 <Badge variant="secondary">{category}</Badge>
               </CardContent>
