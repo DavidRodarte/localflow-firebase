@@ -28,7 +28,11 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export default function CreatePostForm() {
+interface CreatePostFormProps {
+  userLocation?: string;
+}
+
+export default function CreatePostForm({ userLocation }: CreatePostFormProps) {
   const { user } = useAuth();
   const [tags, setTags] = React.useState<string[]>([]);
   const [tagInput, setTagInput] = React.useState("");
@@ -42,7 +46,7 @@ export default function CreatePostForm() {
     defaultValues: {
       title: "",
       description: "",
-      location: "",
+      location: userLocation || "",
       tags: [],
       price: 0,
     },
@@ -111,14 +115,20 @@ export default function CreatePostForm() {
     
     setIsSubmitting(true);
     
-    const idToken = await user.getIdToken();
-    await createPost(values, idToken);
-
-    // If createPost is successful, it will redirect and this code below will not be reached.
-    // If it throws an error (other than the redirect signal), the error will propagate and can be caught by a boundary.
-    // We no longer need a try/catch here as we want the redirect to happen.
-    
-    // We also don't need to manually set isSubmitting to false, as the component will unmount on redirect.
+    try {
+      const idToken = await user.getIdToken();
+      await createPost(values, idToken);
+      // On success, the server action will redirect.
+    } catch (error: any) {
+        if (!error.message.includes('NEXT_REDIRECT')) {
+            toast({
+                variant: 'destructive',
+                title: 'Submission Failed',
+                description: 'Could not create your post. Please try again.',
+            });
+            setIsSubmitting(false);
+        }
+    }
   }
 
   return (

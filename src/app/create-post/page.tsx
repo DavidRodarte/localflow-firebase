@@ -1,15 +1,20 @@
+
 "use client";
 
 import Header from "@/components/layout/header";
 import CreatePostForm from "@/components/create-post/create-post-form";
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { UserProfile } from "@/types";
+import { getUserProfile } from "@/app/profile/actions";
 
 export default function CreatePostPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -17,7 +22,28 @@ export default function CreatePostPage() {
     }
   }, [user, loading, router]);
 
-  if (loading || !user) {
+  useEffect(() => {
+    async function fetchProfile() {
+      if (user) {
+        try {
+          const idToken = await user.getIdToken();
+          const userProfile = await getUserProfile(idToken);
+          setProfile(userProfile);
+        } catch (error) {
+          console.error("Failed to fetch profile for create post page", error);
+          // Non-critical error, so we don't need to show a toast
+        } finally {
+          setProfileLoading(false);
+        }
+      }
+    }
+    
+    if(!loading) {
+       fetchProfile();
+    }
+  }, [user, loading]);
+
+  if (loading || profileLoading || !user) {
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <Header />
@@ -47,7 +73,7 @@ export default function CreatePostPage() {
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
       <main className="container mx-auto px-4 py-8">
-        <CreatePostForm />
+        <CreatePostForm userLocation={profile?.location} />
       </main>
     </div>
   );
