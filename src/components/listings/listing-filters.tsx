@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Input } from "@/components/ui/input";
@@ -7,8 +8,10 @@ import { Laptop, Wrench, Home, Calendar, ShoppingBag, Search } from "lucide-reac
 interface ListingFiltersProps {
   onCategoryChange: (value: string) => void;
   onLocationChange: (value: string) => void;
+  onSearchChange: (value: string) => void;
   currentCategory: string;
   currentLocation: string;
+  currentSearch: string;
 }
 
 const categories = [
@@ -20,10 +23,27 @@ const categories = [
   { value: 'For Sale', label: 'For Sale', icon: <ShoppingBag className="w-4 h-4 mr-2" /> },
 ];
 
-export default function ListingFilters({ onCategoryChange, onLocationChange, currentCategory, currentLocation }: ListingFiltersProps) {
+export default function ListingFilters({ 
+  onCategoryChange, 
+  onLocationChange, 
+  onSearchChange,
+  currentCategory, 
+  currentLocation,
+  currentSearch
+}: ListingFiltersProps) {
   return (
     <div className="flex flex-col md:flex-row gap-4 p-4 bg-card rounded-lg border shadow-sm">
-      <div className="w-full md:w-1/3">
+      <div className="relative w-full md:w-1/3">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          type="search"
+          placeholder="Search by title or tag..."
+          className="pl-10 w-full"
+          onChange={(e) => onSearchChange(e.target.value)}
+          value={currentSearch}
+        />
+      </div>
+       <div className="w-full md:w-1/3">
         <Select onValueChange={onCategoryChange} value={currentCategory}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select a category" />
@@ -40,7 +60,7 @@ export default function ListingFilters({ onCategoryChange, onLocationChange, cur
           </SelectContent>
         </Select>
       </div>
-      <div className="relative w-full md:w-2/3">
+      <div className="relative w-full md:w-1/3">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           type="search"
