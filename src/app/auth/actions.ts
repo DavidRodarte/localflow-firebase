@@ -1,3 +1,4 @@
+
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -22,7 +23,6 @@ export async function onSignIn(
   const result = AuthFormSchema.safeParse(form);
 
   if (!result.success) {
-    console.log(result)
     return {
       message: "Invalid credentials.",
     };
@@ -48,7 +48,6 @@ export async function onSignUp(
   const result = AuthFormSchema.safeParse(form);
 
   if (!result.success) {
-    console.log(result)
     return {
       message: "Invalid credentials.",
     };
@@ -70,12 +69,12 @@ export async function onSignUp(
           };
         default:
           return {
-            message: "An unexpected error occurred.",
+            message: "An unexpected error occurred during sign up.",
           };
       }
     }
- return {
-      message: "Invalid credentials.",
+    return {
+      message: "An unexpected error occurred. Please try again.",
     };
   }
 }
