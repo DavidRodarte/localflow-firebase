@@ -1,7 +1,8 @@
+
 "use client";
 
 import Link from "next/link";
-import { LogIn, LogOut, PlusCircle, User as UserIcon } from "lucide-react";
+import { LogIn, LogOut, PlusCircle, User as UserIcon, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth-context";
 import {
@@ -66,6 +67,13 @@ export default function Header() {
                   <DropdownMenuLabel>
                     {user.email}
                   </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                     <Link href="/dashboard">
+                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                        <span>Dashboard</span>
+                      </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" />
