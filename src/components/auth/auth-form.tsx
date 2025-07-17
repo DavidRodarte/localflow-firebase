@@ -18,7 +18,7 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "../ui/separator";
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { signInWithPopup, GoogleAuthProvider, FirebaseError } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 
 const initialState = {
@@ -88,7 +88,7 @@ export default function AuthForm() {
         description: signInState.message,
       });
     }
-  }, [signInState]);
+  }, [signInState, toast]);
 
   useEffect(() => {
     if (signUpState.message) {
@@ -99,7 +99,7 @@ export default function AuthForm() {
         description: signUpState.message,
       });
     }
-  }, [signUpState]);
+  }, [signUpState, toast]);
 
   const formAction = async (formData: FormData) => {
     const intent = formData.get("intent");
@@ -116,6 +116,11 @@ export default function AuthForm() {
       await signInWithPopup(auth, provider);
       // Let the AuthProvider handle the redirect on successful login
     } catch (error) {
+      if (error instanceof FirebaseError && error.code === 'auth/popup-closed-by-user') {
+        // User closed the popup, so we don't need to show an error
+        console.log("Google sign-in cancelled by user.");
+        return;
+      }
       console.error("Google sign in error", error);
       toast({
         variant: "destructive",
