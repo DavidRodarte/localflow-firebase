@@ -55,24 +55,13 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-function SubmitButton({
-  signInText,
-  signUpText,
-}: {
-  signInText: string;
-  signUpText: string;
-}) {
+function SubmitButton({text}: {text: string}) {
   const { pending } = useFormStatus();
 
   return (
-    <>
-      <Button type="submit" className="w-full" disabled={pending} name="intent" value="signup">
-        {pending ? <Loader2 className="animate-spin" /> : signUpText}
-      </Button>
-      <Button type="submit" variant="secondary" className="w-full" disabled={pending} name="intent" value="signin">
-        {pending ? <Loader2 className="animate-spin" /> : signInText}
-      </Button>
-    </>
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending ? <Loader2 className="animate-spin" /> : text}
+    </Button>
   );
 }
 
@@ -80,6 +69,7 @@ export default function AuthForm() {
   const { toast } = useToast();
   const [signInState, signInAction] = useActionState(onSignIn, initialState);
   const [signUpState, signUpAction] = useActionState(onSignUp, initialState);
+  const [isSigningUp, setIsSigningUp] = React.useState(false);
 
   useEffect(() => {
     if (signInState.message) {
@@ -93,7 +83,6 @@ export default function AuthForm() {
 
   useEffect(() => {
     if (signUpState.message) {
-      console.log(signUpState)
       toast({
         variant: "destructive",
         title: "Sign Up Failed",
@@ -102,23 +91,12 @@ export default function AuthForm() {
     }
   }, [signUpState, toast]);
 
-  const formAction = async (formData: FormData) => {
-    const intent = formData.get("intent");
-    if (intent === "signin") {
-      signInAction(formData);
-    } else {
-      signUpAction(formData);
-    }
-  };
-
   const onSignInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      // Let the AuthProvider handle the redirect on successful login
     } catch (error) {
       if (error instanceof FirebaseError && error.code === 'auth/popup-closed-by-user') {
-        // User closed the popup, so we don't need to show an error
         console.log("Google sign-in cancelled by user.");
         return;
       }
@@ -132,46 +110,49 @@ export default function AuthForm() {
   };
 
   return (
-    <form action={formAction}>
-      <Card>
-        <CardHeader className="space-y-1 text-center">
-          <Link href="/" className="flex items-center gap-2 justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-6 w-6 text-primary"
-            >
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-            </svg>
-            <span className="font-headline text-2xl font-bold text-foreground">
-              LocalFlow
-            </span>
-          </Link>
-          <CardTitle className="text-2xl pt-4">Welcome</CardTitle>
-          <CardDescription>
-            Enter your email and password to sign in or create an account.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <Button variant="outline" type="button" onClick={onSignInWithGoogle} className="w-full">
-            <GoogleIcon className="mr-2 h-4 w-4" />
-            Sign in with Google
-          </Button>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
-              </span>
-            </div>
+    <Card>
+      <CardHeader className="space-y-1 text-center">
+        <Link href="/" className="flex items-center gap-2 justify-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-6 w-6 text-primary"
+          >
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+          </svg>
+          <span className="font-headline text-2xl font-bold text-foreground">
+            LocalFlow
+          </span>
+        </Link>
+        <CardTitle className="text-2xl pt-4">Welcome</CardTitle>
+        <CardDescription>
+          {isSigningUp 
+            ? "Create an account to get started."
+            : "Sign in to your account."}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        <Button variant="outline" type="button" onClick={onSignInWithGoogle} className="w-full">
+          <GoogleIcon className="mr-2 h-4 w-4" />
+          Sign in with Google
+        </Button>
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
           </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">
+              Or continue with
+            </span>
+          </div>
+        </div>
+        
+        <form action={isSigningUp ? signUpAction : signInAction} className="space-y-4">
           <div className="grid gap-2" suppressHydrationWarning>
             <Label htmlFor="email">Email</Label>
             <Input
@@ -186,11 +167,18 @@ export default function AuthForm() {
             <Label htmlFor="password">Password</Label>
             <Input id="password" type="password" name="password" required />
           </div>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-2">
-          <SubmitButton signInText="Sign In" signUpText="Sign Up" />
-        </CardFooter>
-      </Card>
-    </form>
+          <SubmitButton text={isSigningUp ? "Create Account" : "Sign In"} />
+        </form>
+      </CardContent>
+      <CardFooter className="flex flex-col gap-2">
+         <Separator className="my-2"/>
+        <p className="text-sm text-muted-foreground">
+          {isSigningUp ? "Already have an account?" : "Don't have an account?"}
+          <Button variant="link" type="button" onClick={() => setIsSigningUp(!isSigningUp)} className="text-primary">
+            {isSigningUp ? "Sign In" : "Sign Up"}
+          </Button>
+        </p>
+      </CardFooter>
+    </Card>
   );
 }
