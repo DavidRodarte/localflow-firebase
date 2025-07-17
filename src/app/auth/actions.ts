@@ -15,10 +15,16 @@ import {
 } from '@/components/auth/auth-form.types';
 import { auth } from "@/lib/firebase/server";
 
+const FIREBASE_SERVER_CONFIG_ERROR = "Firebase server authentication is not configured. Please check your environment variables.";
+
 export async function onSignIn(
   previousState: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
+  if (!auth) {
+    return { message: FIREBASE_SERVER_CONFIG_ERROR };
+  }
+  
   const form = Object.fromEntries(formData.entries()) as AuthForm;
   const result = AuthFormSchema.safeParse(form);
 
@@ -44,6 +50,10 @@ export async function onSignUp(
   previousState: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
+  if (!auth) {
+    return { message: FIREBASE_SERVER_CONFIG_ERROR };
+  }
+
   const form = Object.fromEntries(formData.entries()) as AuthForm;
   const result = AuthFormSchema.safeParse(form);
 
