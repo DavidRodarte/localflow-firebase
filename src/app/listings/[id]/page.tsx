@@ -5,9 +5,10 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, MapPin, Phone, User as UserIcon } from 'lucide-react';
+import { Mail, MapPin, Phone, User as UserIcon, CalendarIcon } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { format } from 'date-fns';
 
 export default async function ListingDetailPage({
   params,
@@ -20,8 +21,10 @@ export default async function ListingDetailPage({
     notFound();
   }
 
-  const { title, description, price, category, location, tags, imageUrls, imageHint, author } =
+  const { title, description, price, category, location, tags, imageUrls, imageHint, author, createdAt } =
     listingDetails;
+
+  const formattedDate = createdAt ? format(new Date(createdAt), "MMM d, yyyy 'at' h:mm a") : 'Date not available';
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -63,9 +66,15 @@ export default async function ListingDetailPage({
                 </p>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center text-sm text-muted-foreground mb-4">
-                  <MapPin className="h-4 w-4 mr-1.5" />
-                  {location}
+                <div className="flex flex-col gap-2 text-sm text-muted-foreground mb-4">
+                    <div className="flex items-center">
+                        <MapPin className="h-4 w-4 mr-1.5" />
+                        {location}
+                    </div>
+                    <div className="flex items-center">
+                        <CalendarIcon className="h-4 w-4 mr-1.5" />
+                        Posted on {formattedDate}
+                    </div>
                 </div>
                 <Badge variant="secondary">{category}</Badge>
               </CardContent>
