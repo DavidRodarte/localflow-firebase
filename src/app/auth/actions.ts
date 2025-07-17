@@ -65,12 +65,8 @@ export async function onSignUp(
     const { email, password } = result.data;
     await adminAuth.createUser({ email, password });
     
-    if (!clientAuth) {
-        return { message: "Firebase client authentication is not configured. User created, but could not sign in." };
-    }
-    await signInWithEmailAndPassword(clientAuth, email, password);
+    return onSignIn(previousState, formData);
 
-    redirect("/");
   } catch (e) {
     if (e instanceof FirebaseError) {
       switch (e.code) {
