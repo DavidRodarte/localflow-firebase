@@ -15,8 +15,21 @@ export default function ListingGrid({ initialListings }: ListingGridProps) {
   const [location, setLocation] = React.useState('');
   const [searchQuery, setSearchQuery] = React.useState('');
 
+  const sortedListings = React.useMemo(() => {
+    return [...initialListings].sort((a, b) => {
+      if (a.createdAt && b.createdAt) {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      // If one has a date and the other doesn't, the one with the date comes first.
+      if (a.createdAt) return -1;
+      if (b.createdAt) return 1;
+      // If neither has a date, their order doesn't matter.
+      return 0;
+    });
+  }, [initialListings]);
+
   const filteredListings = React.useMemo(() => {
-    return initialListings.filter(listing => {
+    return sortedListings.filter(listing => {
       const categoryMatch = category === 'all' || listing.category === category;
       const locationMatch = location === '' || (listing.location && listing.location.toLowerCase().includes(location.toLowerCase()));
       const searchMatch = searchQuery === '' || 
@@ -25,7 +38,7 @@ export default function ListingGrid({ initialListings }: ListingGridProps) {
 
       return categoryMatch && locationMatch && searchMatch;
     });
-  }, [category, location, searchQuery, initialListings]);
+  }, [category, location, searchQuery, sortedListings]);
 
   return (
     <>
