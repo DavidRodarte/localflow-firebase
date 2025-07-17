@@ -5,7 +5,7 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Lightbulb, Loader2, Tag, X, Image as ImageIcon } from "lucide-react";
+import { Lightbulb, Loader2, Tag, X, ImageIcon } from "lucide-react";
 import { getTagSuggestions, createPost } from "@/app/create-post/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
