@@ -12,6 +12,7 @@ export interface Listing {
   imageUrls: string[]; // Can be a URL or a Base64 data URI
   imageHint: string;
   authorId: string;
+  createdAt: string;
 }
 
 export interface UserProfile {

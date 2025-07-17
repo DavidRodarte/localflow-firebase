@@ -28,6 +28,7 @@ export async function getListings(): Promise<Listing[]> {
         imageUrls: data.imageUrls,
         imageHint: data.imageHint,
         authorId: data.authorId,
+        createdAt: data.createdAt,
       };
     });
     

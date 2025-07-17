@@ -7,7 +7,7 @@ import { type Listing } from "@/types";
 import { redirect } from "next/navigation";
 
 // The input now includes the imageUrl as a Base64 string
-type CreatePostInput = Omit<Listing, "id" | "authorId" | "imageHint">;
+type CreatePostInput = Omit<Listing, "id" | "authorId" | "imageHint" | "createdAt">;
 
 export async function createPost(input: CreatePostInput, idToken: string) {
   if (!db || !auth) {
@@ -32,6 +32,7 @@ export async function createPost(input: CreatePostInput, idToken: string) {
   const newPost: Omit<Listing, "id"> = {
     ...input,
     authorId: authorId,
+    createdAt: new Date().toISOString(),
     imageHint: input.title // Use title as the hint for accessibility and potential future AI
   };
 
