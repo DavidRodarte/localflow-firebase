@@ -2,12 +2,37 @@
 "use server";
 
 import { suggestTags, type SuggestTagsInput } from "@/ai/flows/suggest-tags";
-import { db, auth } from "@/lib/firebase/server";
+import { db, auth, storage } from "@/lib/firebase/server";
 import { type Listing } from "@/types";
 import { redirect } from "next/navigation";
+import { getDownloadURL } from "firebase-admin/storage";
 
 // The input now includes the imageUrl as a Base64 string
 type CreatePostInput = Omit<Listing, "id" | "authorId" | "imageHint" | "createdAt">;
+
+async function uploadImage(dataUri: string, authorId: string): Promise<string> {
+    if (!storage) {
+        throw new Error("Storage is not initialized.");
+    }
+
+    const bucket = storage.bucket();
+    const mimeType = dataUri.match(/data:(.*);base64,/)?.[1] || 'image/jpeg';
+    const extension = mimeType.split('/')[1] || 'jpg';
+    const base64Data = dataUri.split(',')[1];
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    const fileName = `listings/${authorId}/${Date.now()}.${extension}`;
+    const file = bucket.file(fileName);
+
+    await file.save(buffer, {
+        metadata: {
+            contentType: mimeType,
+        },
+    });
+
+    const publicUrl = await getDownloadURL(file);
+    return publicUrl;
+}
 
 export async function createPost(input: CreatePostInput, idToken: string) {
   if (!db || !auth) {
@@ -29,8 +54,13 @@ export async function createPost(input: CreatePostInput, idToken: string) {
 
   const authorId = user.uid;
 
+  const imageUrls = await Promise.all(
+    input.imageUrls.map(dataUri => uploadImage(dataUri, authorId))
+  );
+
   const newPost: Omit<Listing, "id"> = {
     ...input,
+    imageUrls: imageUrls,
     authorId: authorId,
     createdAt: new Date().toISOString(),
     imageHint: input.title // Use title as the hint for accessibility and potential future AI
@@ -59,3 +89,4 @@ export async function getTagSuggestions(input: SuggestTagsInput) {
     throw new Error("Failed to get suggestions from AI.");
   }
 }
+

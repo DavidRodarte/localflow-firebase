@@ -1,7 +1,7 @@
 
 'use server';
 
-import { db, auth } from '@/lib/firebase/server';
+import { db, auth, storage } from '@/lib/firebase/server';
 import type { Listing } from '@/types';
 import { revalidatePath } from 'next/cache';
 
@@ -44,6 +44,27 @@ export async function getUserListings(idToken: string): Promise<Listing[]> {
   }
 }
 
+async function deleteStorageFile(fileUrl: string) {
+    if (!storage) {
+        console.warn("Storage is not initialized, skipping file deletion.");
+        return;
+    }
+    try {
+        const bucket = storage.bucket();
+        // Extract the file path from the URL
+        const decodedUrl = decodeURIComponent(fileUrl);
+        const path = decodedUrl.split('/o/')[1].split('?')[0];
+        await bucket.file(path).delete();
+    } catch (error: any) {
+        // We log the error but don't re-throw it, as we still want to delete the DB entry
+        if (error.code === 404) {
+            console.log(`File not found in storage, might have been already deleted: ${fileUrl}`);
+        } else {
+            console.error(`Error deleting file from storage: ${fileUrl}`, error);
+        }
+    }
+}
+
 export async function deleteListing(listingId: string, idToken: string): Promise<{ success: boolean; error?: string }> {
   if (!db) {
      return { success: false, error: 'Firestore is not initialized.' };
@@ -61,6 +82,11 @@ export async function deleteListing(listingId: string, idToken: string): Promise
     const listing = doc.data() as Listing;
     if (listing.authorId !== userId) {
       return { success: false, error: 'You are not authorized to delete this listing.' };
+    }
+    
+    // Delete images from Cloud Storage first
+    if (listing.imageUrls && listing.imageUrls.length > 0) {
+        await Promise.all(listing.imageUrls.map(url => deleteStorageFile(url)));
     }
 
     await listingRef.delete();
