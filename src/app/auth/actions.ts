@@ -39,6 +39,13 @@ export async function onSignIn(
     revalidatePath("/");
     redirect("/");
   } catch (e) {
+    if (e instanceof FirebaseError) {
+      if (e.code === 'auth/invalid-credential') {
+        return {
+          message: "Invalid email or password."
+        }
+      }
+    }
     return {
       message: "Invalid credentials.",
     };
@@ -65,6 +72,7 @@ export async function onSignUp(
     const { email, password } = result.data;
     await adminAuth.createUser({ email, password });
     
+    // After creating the user, attempt to sign them in.
     return onSignIn(previousState, formData);
 
   } catch (e) {
