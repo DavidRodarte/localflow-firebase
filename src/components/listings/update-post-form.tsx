@@ -201,7 +201,10 @@ export default function UpdatePostForm({ listing }: UpdatePostFormProps) {
       const idToken = await user.getIdToken();
       // We pass the new images separately. `values.imageUrls` contains only the kept existing URLs.
       await updateListing(listing.id, values, newImageFiles, idToken);
-    } catch(e) {
+    } catch(error: any) {
+       if (error.message.includes('NEXT_REDIRECT')) {
+        throw error;
+      }
       toast({
         variant: 'destructive',
         title: 'Update Failed',
