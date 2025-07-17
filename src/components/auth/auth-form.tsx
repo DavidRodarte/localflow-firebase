@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -69,7 +70,7 @@ export default function AuthForm() {
   const { toast } = useToast();
   const [signInState, signInAction] = useActionState(onSignIn, initialState);
   const [signUpState, signUpAction] = useActionState(onSignUp, initialState);
-  const [isSigningUp, setIsSigningUp] = React.useState(false);
+  const [isSigningUp, setIsSigningUp] = useState(false);
 
   useEffect(() => {
     if (signInState.message) {
