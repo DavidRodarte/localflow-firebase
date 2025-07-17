@@ -15,6 +15,10 @@ function EditPostSkeleton() {
   return (
     <div className="w-full max-w-2xl mx-auto space-y-8">
       <Skeleton className="h-10 w-1/3" />
+       <div className="space-y-4">
+        <Skeleton className="h-8 w-1/4" />
+        <Skeleton className="h-48 w-full" />
+      </div>
       <div className="space-y-4">
         <Skeleton className="h-8 w-1/4" />
         <Skeleton className="h-10 w-full" />
@@ -101,4 +105,3 @@ export default function EditPostPage() {
     </div>
   );
 }
-

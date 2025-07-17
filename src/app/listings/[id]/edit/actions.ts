@@ -1,10 +1,11 @@
 
 'use server';
 
-import { db, auth } from '@/lib/firebase/server';
+import { db, auth, storage } from '@/lib/firebase/server';
 import type { Listing } from '@/types';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { getDownloadURL } from 'firebase-admin/storage';
 
 async function getUserIdFromToken(idToken: string) {
   if (!auth) {
@@ -38,24 +39,55 @@ export async function getListing(
   const listing = { id: docSnap.id, ...docSnap.data() } as Listing;
 
   if (listing.authorId !== userId) {
-    // Or throw an error, depending on how you want to handle unauthorized access
     return null;
   }
 
   return listing;
 }
 
-type UpdatePostInput = Omit<Listing, 'id' | 'authorId' | 'imageUrls' | 'imageHint' | 'createdAt' | 'updatedAt'>;
+// Helper to upload a single image
+async function uploadImage(dataUri: string, authorId: string): Promise<string> {
+  if (!storage) {
+    throw new Error('Storage is not initialized.');
+  }
+  const bucket = storage.bucket();
+  const mimeType = dataUri.match(/data:(.*);base64,/)?.[1] || 'image/jpeg';
+  const extension = mimeType.split('/')[1] || 'jpg';
+  const base64Data = dataUri.split(',')[1];
+  const buffer = Buffer.from(base64Data, 'base64');
+  const fileName = `listings/${authorId}/${Date.now()}.${extension}`;
+  const file = bucket.file(fileName);
+  await file.save(buffer, { metadata: { contentType: mimeType } });
+  return getDownloadURL(file);
+}
+
+// Helper to delete a single image
+async function deleteImage(fileUrl: string) {
+  if (!storage) {
+    console.warn('Storage is not initialized, skipping file deletion.');
+    return;
+  }
+  try {
+    const bucket = storage.bucket();
+    const decodedUrl = decodeURIComponent(fileUrl);
+    const path = decodedUrl.split('/o/')[1].split('?')[0];
+    await bucket.file(path).delete();
+  } catch (error: any) {
+    if (error.code !== 404) {
+      console.error(`Error deleting file from storage: ${fileUrl}`, error);
+    }
+  }
+}
+
+type UpdatePostInput = Omit<Listing, 'id' | 'authorId' | 'imageHint' | 'createdAt' | 'updatedAt'>;
 
 export async function updateListing(
   listingId: string,
   input: UpdatePostInput,
+  newImages: string[], // Array of new image data URIs
   idToken: string
 ) {
   if (!db || !auth) {
-    console.error(
-      'Firestore or Auth is not initialized. Check your server environment variables.'
-    );
     throw new Error('Server is not configured correctly.');
   }
 
@@ -67,14 +99,29 @@ export async function updateListing(
     if (!doc.exists) {
       throw new Error('Listing not found.');
     }
-    const listingData = doc.data() as Listing;
-    if (listingData.authorId !== userId) {
+    const currentListing = doc.data() as Listing;
+    if (currentListing.authorId !== userId) {
       throw new Error('You are not authorized to update this listing.');
     }
+
+    // Identify and delete removed images from storage
+    const imagesToDelete = currentListing.imageUrls.filter(
+      (url) => !input.imageUrls.includes(url)
+    );
+    await Promise.all(imagesToDelete.map((url) => deleteImage(url)));
     
+    // Upload new images to storage
+    const newImageUrls = await Promise.all(
+      newImages.map((dataUri) => uploadImage(dataUri, userId))
+    );
+    
+    // Combine kept old URLs with new URLs
+    const finalImageUrls = [...input.imageUrls, ...newImageUrls];
+
     const updateData = {
-        ...input,
-        updatedAt: new Date().toISOString()
+      ...input,
+      imageUrls: finalImageUrls,
+      updatedAt: new Date().toISOString(),
     };
 
     await docRef.update(updateData);
