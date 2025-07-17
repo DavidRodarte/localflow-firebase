@@ -47,7 +47,7 @@ export async function onSignIn(
       }
     }
     return {
-      message: "Invalid credentials.",
+      message: "An unexpected error occurred during sign in.",
     };
   }
 }
