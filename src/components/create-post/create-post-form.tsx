@@ -110,23 +110,18 @@ export default function CreatePostForm() {
     }
     
     setIsSubmitting(true);
-    try {
-      const idToken = await user.getIdToken();
-      await createPost(values, idToken);
-      toast({
-        title: "Post Submitted!",
-        description: "Your listing has been successfully created.",
-      });
-      // The redirect in the server action will handle navigation
-    } catch (error) {
+    
+    const idToken = await user.getIdToken();
+    await createPost(values, idToken).catch((error) => {
+      // The redirect in the server action will not cause this to be called.
+      // This will only be called for actual errors.
       toast({
         variant: "destructive",
         title: "Submission Failed",
-        description: "Could not create your post. Please try again.",
+        description: error.message || "Could not create your post. Please try again.",
       });
-    } finally {
       setIsSubmitting(false);
-    }
+    });
   }
 
   return (
