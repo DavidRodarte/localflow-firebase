@@ -2,43 +2,28 @@
 'use server';
 
 import { db, auth } from '@/lib/firebase/server';
-import { getAuth as getClientAuth } from "firebase/auth";
-import { auth as clientAuth } from "@/lib/firebase/client";
 import type { Listing } from '@/types';
-import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
-async function getAuthenticatedUser() {
-  // This is a workaround to get the current user on the server.
-  // In a real app, you'd use a more robust session management solution.
-  const sessionCookie = cookies().get('session')?.value;
-  if (!sessionCookie) return null;
-  
+async function getUserIdFromToken(idToken: string) {
+  if (!auth) {
+    throw new Error("Authentication service is not initialized.");
+  }
   try {
-    const decodedToken = await auth.verifySessionCookie(sessionCookie, true);
-    return decodedToken;
+    const decodedToken = await auth.verifyIdToken(idToken);
+    return decodedToken.uid;
   } catch (error) {
-    // Session cookie is invalid or expired.
-    return null;
+    console.error("Error verifying ID token:", error);
+    throw new Error("Invalid authentication token.");
   }
 }
 
-async function getUserId() {
-    const user = getClientAuth(clientAuth.app).currentUser;
-    if(!user) {
-        throw new Error("User is not authenticated.");
-    }
-    const token = await user.getIdToken();
-    const decodedToken = await auth.verifyIdToken(token);
-    return decodedToken.uid;
-}
-
-export async function getUserListings(): Promise<Listing[]> {
+export async function getUserListings(idToken: string): Promise<Listing[]> {
   if (!db) {
     throw new Error('Firestore is not initialized.');
   }
   
-  const userId = await getUserId();
+  const userId = await getUserIdFromToken(idToken);
 
   try {
     const snapshot = await db.collection('listings').where('authorId', '==', userId).get();
@@ -59,12 +44,12 @@ export async function getUserListings(): Promise<Listing[]> {
   }
 }
 
-export async function deleteListing(listingId: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteListing(listingId: string, idToken: string): Promise<{ success: boolean; error?: string }> {
   if (!db) {
      return { success: false, error: 'Firestore is not initialized.' };
   }
   
-  const userId = await getUserId();
+  const userId = await getUserIdFromToken(idToken);
   const listingRef = db.collection('listings').doc(listingId);
 
   try {

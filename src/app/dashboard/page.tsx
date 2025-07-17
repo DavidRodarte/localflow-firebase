@@ -108,7 +108,8 @@ export default function DashboardPage() {
       if (user) {
         setLoading(true);
         try {
-          const userListings = await getUserListings();
+          const idToken = await user.getIdToken();
+          const userListings = await getUserListings(idToken);
           setListings(userListings);
         } catch (error) {
           toast({
@@ -125,11 +126,12 @@ export default function DashboardPage() {
   }, [user, toast]);
 
   const handleDelete = () => {
-    if (!selectedListingId) return;
+    if (!selectedListingId || !user) return;
 
     startDeleteTransition(async () => {
       try {
-        const result = await deleteListing(selectedListingId);
+        const idToken = await user.getIdToken();
+        const result = await deleteListing(selectedListingId, idToken);
         if (result.success) {
           setListings(listings.filter(l => l.id !== selectedListingId));
           toast({
