@@ -74,7 +74,7 @@ export default function UpdatePostForm({ listing }: UpdatePostFormProps) {
       category: listing.category,
       location: listing.location,
       tags: listing.tags,
-      price: listing.price,
+      price: listing.price || undefined,
     },
   });
 
@@ -141,11 +141,17 @@ export default function UpdatePostForm({ listing }: UpdatePostFormProps) {
     }
 
     setIsSubmitting(true);
-    const idToken = await user.getIdToken();
-    
-    // The updateListing action will redirect on success.
-    // Errors will be caught by the server action's own error handling.
-    await updateListing(listing.id, values, idToken);
+    try {
+      const idToken = await user.getIdToken();
+      await updateListing(listing.id, values, idToken);
+    } catch(e) {
+      toast({
+        variant: 'destructive',
+        title: 'Update Failed',
+        description: 'Could not update your post. Please try again.',
+      });
+      setIsSubmitting(false);
+    }
   }
 
   return (

@@ -16,7 +16,7 @@ export default function ListingGrid({ initialListings }: ListingGridProps) {
   const filteredListings = React.useMemo(() => {
     return initialListings.filter(listing => {
       const categoryMatch = category === 'all' || listing.category === category;
-      const locationMatch = location === '' || listing.location.toLowerCase().includes(location.toLowerCase());
+      const locationMatch = location === '' || (listing.location && listing.location.toLowerCase().includes(location.toLowerCase()));
       return categoryMatch && locationMatch;
     });
   }, [category, location, initialListings]);
