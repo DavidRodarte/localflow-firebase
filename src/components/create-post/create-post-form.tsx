@@ -111,17 +111,20 @@ export default function CreatePostForm() {
     
     setIsSubmitting(true);
     
-    const idToken = await user.getIdToken();
-    await createPost(values, idToken).catch((error) => {
-      // The redirect in the server action will not cause this to be called.
-      // This will only be called for actual errors.
+    try {
+      const idToken = await user.getIdToken();
+      await createPost(values, idToken);
+      // On success, the server action will redirect, so this part won't be reached.
+    } catch (error: any) {
+      // The redirect will not be caught here. This will only catch actual errors.
       toast({
         variant: "destructive",
         title: "Submission Failed",
         description: error.message || "Could not create your post. Please try again.",
       });
-      setIsSubmitting(false);
-    });
+    } finally {
+        setIsSubmitting(false);
+    }
   }
 
   return (
