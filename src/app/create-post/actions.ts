@@ -10,34 +10,37 @@ type CreatePostInput = Omit<Listing, "id" | "authorId" | "imageUrl" | "imageHint
 
 export async function createPost(input: CreatePostInput, idToken: string) {
   if (!db || !auth) {
-    throw new Error("Firestore or Auth is not initialized. Check your server environment variables.");
+    console.error("Firestore or Auth is not initialized. Check your server environment variables.");
+    throw new Error("Server is not configured correctly.");
   }
 
+  let user;
   try {
-    const user = await auth.verifyIdToken(idToken);
-    if (!user) {
-      throw new Error("Authentication failed.");
-    }
+    user = await auth.verifyIdToken(idToken);
+  } catch (error) {
+     console.error("Error verifying ID token:", error);
+     throw new Error("Authentication failed. Please sign in again.");
+  }
+  
+  if (!user) {
+    throw new Error("Authentication failed. Please sign in again.");
+  }
 
-    const authorId = user.uid;
-    const newPost: Omit<Listing, "id"> = {
-      ...input,
-      authorId: authorId,
-      // Hardcoding placeholder image for now
-      imageUrl: "https://placehold.co/600x400.png",
-      imageHint: "new listing"
-    };
+  const authorId = user.uid;
+  const newPost: Omit<Listing, "id"> = {
+    ...input,
+    authorId: authorId,
+    // Hardcoding placeholder image for now
+    imageUrl: "https://placehold.co/600x400.png",
+    imageHint: "new listing"
+  };
 
+  try {
     await db.collection("listings").add(newPost);
-    
-  } catch (error: any) {
-    // This is the crucial part: If the error is a redirect, we must re-throw it.
-    if (error.message.includes('NEXT_REDIRECT')) {
-      throw error;
-    }
-    console.error("Error creating post:", error);
-    // Re-throw other errors to be caught by the client
-    throw new Error("Failed to create post in database.");
+  } catch (error) {
+    console.error("Error creating post in database:", error);
+    // Throw a real error that the client can catch
+    throw new Error("Failed to create post in the database. Please try again.");
   }
   
   // Redirect only after all database operations are successful

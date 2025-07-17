@@ -111,20 +111,14 @@ export default function CreatePostForm() {
     
     setIsSubmitting(true);
     
-    try {
-      const idToken = await user.getIdToken();
-      await createPost(values, idToken);
-      // On success, the server action will redirect, so this part won't be reached.
-    } catch (error: any) {
-      // The redirect will not be caught here. This will only catch actual errors.
-      toast({
-        variant: "destructive",
-        title: "Submission Failed",
-        description: error.message || "Could not create your post. Please try again.",
-      });
-    } finally {
-        setIsSubmitting(false);
-    }
+    const idToken = await user.getIdToken();
+    await createPost(values, idToken);
+
+    // If createPost is successful, it will redirect and this code below will not be reached.
+    // If it throws an error (other than the redirect signal), the error will propagate and can be caught by a boundary.
+    // We no longer need a try/catch here as we want the redirect to happen.
+    
+    // We also don't need to manually set isSubmitting to false, as the component will unmount on redirect.
   }
 
   return (
