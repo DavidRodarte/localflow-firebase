@@ -66,6 +66,27 @@ function SubmitButton({text}: {text: string}) {
   );
 }
 
+function AuthContent() {
+  return (
+    <>
+      <div className="grid gap-2" suppressHydrationWarning>
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          name="email"
+          placeholder="m@example.com"
+          required
+        />
+      </div>
+      <div className="grid gap-2" suppressHydrationWarning>
+        <Label htmlFor="password">Password</Label>
+        <Input id="password" type="password" name="password" required />
+      </div>
+    </>
+  );
+}
+
 export default function AuthForm() {
   const { toast } = useToast();
   const [signInState, signInAction] = useActionState(onSignIn, initialState);
@@ -110,26 +131,6 @@ export default function AuthForm() {
     }
   };
   
-  const AuthContent = () => (
-    <>
-      <div className="grid gap-2" suppressHydrationWarning>
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          name="email"
-          placeholder="m@example.com"
-          required
-        />
-      </div>
-      <div className="grid gap-2" suppressHydrationWarning>
-        <Label htmlFor="password">Password</Label>
-        <Input id="password" type="password" name="password" required />
-      </div>
-    </>
-  );
-
-
   return (
     <Card>
       <CardHeader className="space-y-1 text-center">
