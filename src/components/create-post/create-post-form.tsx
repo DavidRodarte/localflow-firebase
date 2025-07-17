@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -5,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Lightbulb, Loader2, Tag, X } from "lucide-react";
-import { getTagSuggestions } from "@/app/create-post/actions";
+import { getTagSuggestions, createPost } from "@/app/create-post/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,7 @@ export default function CreatePostForm() {
   const [tagInput, setTagInput] = React.useState("");
   const [suggestedTags, setSuggestedTags] = React.useState<string[]>([]);
   const [isSuggesting, setIsSuggesting] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -40,6 +42,7 @@ export default function CreatePostForm() {
       description: "",
       location: "",
       tags: [],
+      price: 0,
     },
   });
 
@@ -94,12 +97,24 @@ export default function CreatePostForm() {
     }
   };
 
-  function onSubmit(values: FormValues) {
-    console.log(values);
-    toast({
-      title: "Post Submitted!",
-      description: "Your listing has been successfully created.",
-    });
+  async function onSubmit(values: FormValues) {
+    setIsSubmitting(true);
+    try {
+      await createPost(values);
+      toast({
+        title: "Post Submitted!",
+        description: "Your listing has been successfully created.",
+      });
+      // The redirect in the server action will handle navigation
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Submission Failed",
+        description: "Could not create your post. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -250,7 +265,9 @@ export default function CreatePostForm() {
               <FormDescription>Feature not implemented. Image uploads are for demonstration purposes only.</FormDescription>
             </FormItem>
             
-            <Button type="submit" size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">Create Post</Button>
+            <Button type="submit" size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={isSubmitting}>
+              {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Create Post"}
+            </Button>
           </form>
         </Form>
       </CardContent>
