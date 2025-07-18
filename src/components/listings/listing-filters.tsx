@@ -3,7 +3,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Baby, Book, Brush, Car, Cat, Gamepad2, HeartHandshake, Home, Laptop, MoreHorizontal, Palette, Shirt, ShoppingBag, Sprout, Tag, Toy, Wrench, Calendar, Dumbbell } from "lucide-react";
+import { Baby, Book, Brush, Car, Cat, Gamepad2, HeartHandshake, Home, Laptop, MoreHorizontal, Palette, Shirt, ShoppingBag, Sprout, Tag, ToyBrick, Wrench, Calendar, Dumbbell } from "lucide-react";
 import { Search } from "lucide-react";
 
 interface ListingFiltersProps {
@@ -29,7 +29,7 @@ const categories = [
   { value: 'Books, Movies & Music', label: 'Books, Movies & Music', icon: <Book className="w-4 h-4 mr-2" /> },
   { value: 'Vehicles', label: 'Vehicles', icon: <Car className="w-4 h-4 mr-2" /> },
   { value: 'Sports & Outdoors', label: 'Sports & Outdoors', icon: <Dumbbell className="w-4 h-4 mr-2" /> },
-  { value: 'Toys', label: 'Toys', icon: <Toy className="w-4 h-4 mr-2" /> },
+  { value: 'Toys', label: 'Toys', icon: <ToyBrick className="w-4 h-4 mr-2" /> },
   { value: 'Hobbies', label: 'Hobbies', icon: <Gamepad2 className="w-4 h-4 mr-2" /> },
   { value: 'Baby & Kids', label: 'Baby & Kids', icon: <Baby className="w-4 h-4 mr-2" /> },
   { value: 'Health & Beauty', label: 'Health & Beauty', icon: <Brush className="w-4 h-4 mr-2" /> },
