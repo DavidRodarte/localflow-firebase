@@ -1,5 +1,5 @@
 
-export type ListingCategory = "Electronics" | "Services" | "Housing" | "Events" | "For Sale";
+export type ListingCategory = "Electronics" | "Services" | "Housing" | "Events" | "For Sale" | "Pets & Animals" | "House & Garden" | "Clothes" | "Collectibles & Art" | "Books, Movies & Music" | "Vehicles" | "Sports & Outdoors" | "Toys" | "Hobbies" | "Baby & Kids" | "Health & Beauty" | "Other";
 
 export interface Listing {
   id: string;

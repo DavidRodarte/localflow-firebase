@@ -41,7 +41,7 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/web
 const formSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.').max(100),
   description: z.string().min(20, 'Description must be at least 20 characters.').max(5000),
-  category: z.enum(['Electronics', 'Services', 'Housing', 'Events', 'For Sale']),
+  category: z.enum(['Electronics', 'Services', 'Housing', 'Events', 'For Sale', 'Pets & Animals', 'House & Garden', 'Clothes', 'Collectibles & Art', 'Books, Movies & Music', 'Vehicles', 'Sports & Outdoors', 'Toys', 'Hobbies', 'Baby & Kids', 'Health & Beauty', 'Other']),
   price: z.coerce.number().min(0, "Price can't be negative.").optional(),
   location: z.string().min(2, 'Location is required.'),
   tags: z.array(z.string()).max(10, 'You can add up to 10 tags.'),
@@ -269,6 +269,18 @@ export default function UpdatePostForm({ listing }: UpdatePostFormProps) {
                         <SelectItem value="Services">Services</SelectItem>
                         <SelectItem value="Housing">Housing</SelectItem>
                         <SelectItem value="Events">Events</SelectItem>
+                         <SelectItem value="Pets & Animals">Pets & Animals</SelectItem>
+                        <SelectItem value="House & Garden">House & Garden</SelectItem>
+                        <SelectItem value="Clothes">Clothes</SelectItem>
+                        <SelectItem value="Collectibles & Art">Collectibles & Art</SelectItem>
+                        <SelectItem value="Books, Movies & Music">Books, Movies & Music</SelectItem>
+                        <SelectItem value="Vehicles">Vehicles</SelectItem>
+                        <SelectItem value="Sports & Outdoors">Sports & Outdoors</SelectItem>
+                        <SelectItem value="Toys">Toys</SelectItem>
+                        <SelectItem value="Hobbies">Hobbies</SelectItem>
+                        <SelectItem value="Baby & Kids">Baby & Kids</SelectItem>
+                        <SelectItem value="Health & Beauty">Health & Beauty</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
