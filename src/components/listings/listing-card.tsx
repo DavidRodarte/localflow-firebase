@@ -10,6 +10,16 @@ interface ListingCardProps {
 }
 
 export default function ListingCard({ listing }: ListingCardProps) {
+  const displayPrice = () => {
+    if (listing.price !== undefined && listing.price !== null) {
+      if (listing.price > 0) {
+        return `$${listing.price.toLocaleString()}`;
+      }
+      return 'Contact for more information';
+    }
+    return 'Contact for price';
+  };
+  
   return (
     <Link href={`/listings/${listing.id}`} className="group">
       <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
@@ -50,9 +60,9 @@ export default function ListingCard({ listing }: ListingCardProps) {
         <CardContent className="p-4 flex-grow">
           <CardTitle className="text-lg font-headline leading-tight mb-2 truncate">{listing.title}</CardTitle>
           <CardDescription className="text-primary font-bold text-lg">
-            {listing.price ? `$${listing.price.toLocaleString()}` : 'Contact for price'}
-            {listing.category === 'Services' && ' / hr'}
-            {listing.category === 'Housing' && ' / mo'}
+            {displayPrice()}
+            {listing.category === 'Services' && listing.price > 0 && ' / hr'}
+            {listing.category === 'Housing' && listing.price > 0 && ' / mo'}
           </CardDescription>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground">
