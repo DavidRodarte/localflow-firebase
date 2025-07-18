@@ -10,7 +10,6 @@ import { getTagSuggestions, createPost } from "@/app/create-post/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useAuth } from "@/context/auth-context";
 import Image from 'next/image';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../ui/carousel";
+import CategoryPicker from "../listings/category-picker";
 
 const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -25,7 +25,9 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/web
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters.").max(100),
   description: z.string().min(20, "Description must be at least 20 characters.").max(5000),
-  category: z.enum(["Electronics", "Services", "Housing", "Events", "For Sale", "Pets & Animals", "House & Garden", "Clothes", "Collectibles & Art", "Books, Movies & Music", "Vehicles", "Sports & Outdoors", "Toys", "Hobbies", "Baby & Kids", "Health & Beauty", "Other"]),
+  category: z.enum(["Electronics", "Services", "Housing", "Events", "For Sale", "Pets & Animals", "House & Garden", "Clothes", "Collectibles & Art", "Books, Movies & Music", "Vehicles", "Sports & Outdoors", "Toys", "Hobbies", "Baby & Kids", "Health & Beauty", "Other"], {
+    required_error: "You need to select a category.",
+  }),
   price: z.coerce.number().min(0, "Price can't be negative.").optional(),
   location: z.string().min(2, "Location is required."),
   tags: z.array(z.string()).max(10, "You can add up to 10 tags."),
@@ -224,32 +226,9 @@ export default function CreatePostForm({ userLocation }: CreatePostFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="For Sale">For Sale</SelectItem>
-                        <SelectItem value="Electronics">Electronics</SelectItem>
-                        <SelectItem value="Services">Services</SelectItem>
-                        <SelectItem value="Housing">Housing</SelectItem>
-                        <SelectItem value="Events">Events</SelectItem>
-                        <SelectItem value="Pets & Animals">Pets & Animals</SelectItem>
-                        <SelectItem value="House & Garden">House & Garden</SelectItem>
-                        <SelectItem value="Clothes">Clothes</SelectItem>
-                        <SelectItem value="Collectibles & Art">Collectibles & Art</SelectItem>
-                        <SelectItem value="Books, Movies & Music">Books, Movies & Music</SelectItem>
-                        <SelectItem value="Vehicles">Vehicles</SelectItem>
-                        <SelectItem value="Sports & Outdoors">Sports & Outdoors</SelectItem>
-                        <SelectItem value="Toys">Toys</SelectItem>
-                        <SelectItem value="Hobbies">Hobbies</SelectItem>
-                        <SelectItem value="Baby & Kids">Baby & Kids</SelectItem>
-                        <SelectItem value="Health & Beauty">Health & Beauty</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                       <CategoryPicker value={field.value} onChange={field.onChange} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
