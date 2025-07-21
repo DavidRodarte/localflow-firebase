@@ -1,9 +1,12 @@
+
 import type { Listing } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Carousel, CarouselContent, CarouselItem } from "../ui/carousel";
+import { formatDistanceToNow } from "date-fns";
+import { Clock } from "lucide-react";
 
 interface ListingCardProps {
   listing: Listing;
@@ -19,6 +22,14 @@ export default function ListingCard({ listing }: ListingCardProps) {
     }
     return 'Contact for price';
   };
+
+  const getTimeAgo = () => {
+    const dateToCompare = listing.updatedAt || listing.createdAt;
+    if (!dateToCompare) return null;
+    return formatDistanceToNow(new Date(dateToCompare), { addSuffix: true });
+  };
+
+  const timeAgo = getTimeAgo();
   
   return (
     <Link href={`/listings/${listing.id}`} className="group">
@@ -65,9 +76,17 @@ export default function ListingCard({ listing }: ListingCardProps) {
             {listing.category === 'Housing' && listing.price > 0 && ' / mo'}
           </CardDescription>
         </CardContent>
-        <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground">
-          <span>{listing.location}</span>
-          <Badge variant="secondary">{listing.category}</Badge>
+        <CardFooter className="p-4 pt-0 flex-col items-start gap-2">
+           <div className="flex justify-between items-center w-full text-sm text-muted-foreground">
+             <span>{listing.location}</span>
+             <Badge variant="secondary">{listing.category}</Badge>
+           </div>
+           {timeAgo && (
+              <div className="flex items-center text-xs text-muted-foreground">
+                  <Clock className="h-3 w-3 mr-1.5" />
+                  {timeAgo}
+              </div>
+            )}
         </CardFooter>
       </Card>
     </Link>
