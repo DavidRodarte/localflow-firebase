@@ -6,9 +6,10 @@ import { db, auth, storage } from "@/lib/firebase/server";
 import { type Listing } from "@/types";
 import { redirect } from "next/navigation";
 import { getDownloadURL } from "firebase-admin/storage";
+import { revalidatePath } from "next/cache";
 
 // The input now includes the imageUrl as a Base64 string
-type CreatePostInput = Omit<Listing, "id" | "authorId" | "imageHint" | "createdAt">;
+type CreatePostInput = Omit<Listing, "id" | "authorId" | "imageHint" | "createdAt" | "updatedAt">;
 
 async function uploadImage(dataUri: string, authorId: string): Promise<string> {
     if (!storage) {
@@ -76,6 +77,7 @@ export async function createPost(input: CreatePostInput, idToken: string) {
     throw new Error("Failed to create post in the database. Please try again.");
   }
   
+  revalidatePath('/');
   redirect("/");
 }
 
