@@ -30,6 +30,7 @@ export async function getListings(): Promise<Listing[]> {
         imageHint: data.imageHint,
         authorId: data.authorId,
         createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
       };
     });
     
@@ -55,6 +56,7 @@ export async function getListings(): Promise<Listing[]> {
             imageHint: data.imageHint,
             authorId: data.authorId,
             createdAt: data.createdAt,
+            updatedAt: data.updatedAt,
           };
         });
         return listings;
