@@ -1,5 +1,10 @@
-# Firebase Studio
+# LocalFlow
 
-This is a NextJS starter in Firebase Studio.
+This is a demo project generated with Firebase Studio
 
-To get started, take a look at src/app/page.tsx.
+Products used:
+- Firebase Studio
+- Firebase Authentication
+- Firestore Database
+- Cloud Storage
+- Ready to be hosted in App Hosting
