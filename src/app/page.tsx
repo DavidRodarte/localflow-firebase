@@ -2,6 +2,8 @@ import { getListings } from "@/app/listings/actions";
 import Header from "@/components/layout/header";
 import ListingGrid from "@/components/listings/listing-grid";
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   const listings = await getListings();
 
