@@ -91,6 +91,7 @@ export async function deleteListing(listingId: string, idToken: string): Promise
 
     await listingRef.delete();
     revalidatePath('/dashboard');
+    revalidatePath('/');
     return { success: true };
 
   } catch (error) {
