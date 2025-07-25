@@ -133,6 +133,7 @@ export async function updateListing(
     throw new Error('Failed to update post in the database. Please try again.');
   }
 
+  revalidatePath('/');
   revalidatePath('/dashboard');
   revalidatePath(`/listings/${listingId}`);
   revalidatePath(`/listings/${listingId}/edit`);
